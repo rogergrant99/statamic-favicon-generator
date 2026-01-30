@@ -5,7 +5,8 @@
             name="base"
             :blueprint="blueprint"
             :meta="meta"
-            v-model="values"
+            :value="values"
+            @update="value => values = value"
             v-slot="{ setFieldValue, setFieldMeta }"
         >
             <div>
@@ -14,9 +15,9 @@
                         <h1>Favicon Generator</h1>
                         <small class="block text-xs text-gray-80">Last generated: {{ values.generated_at }}</small>
                     </div>
-                    <button class="btn-primary" @click="save()">{{ generate }}</button>
+                    <button class="btn-primary" @click="save()">Save and create</button>
                 </div>
-    
+
                 <publish-tabs
                     @updated="setFieldValue"
                     @meta-updated="setFieldMeta" />
@@ -41,36 +42,42 @@
         </modal>
     </div>
 </template>
-<script>
-export default {
-    props: ['blueprint', 'meta', 'initialValues', 'generate'],
-    data() {
-        return {
-            values: this.initialValues,
-            isOpen: false,
-        }
-    },
-    methods: {
-        save() {
-            this.isOpen = true;
 
-            this.$axios.post('/cp/favicon-generator/update', this.values)
-            .then((response) => {
-                this.isOpen = false;
+<script setup>
+import { ref, watch } from 'vue';
 
-                if(response.data.status && response.data.status == 'success') {
-                    this.$toast.success(response.data.msg);
-                } else {
-                    this.$toast.error('Error: ' + response.data.msg);
-                }
-                
-                this.$dirty.remove();
-            })
-            .catch((error) => {
-                console.log(error);
-                this.isOpen = false;
-            });
-        }
-    }
-}
+const props = defineProps({
+    blueprint: Object,
+    meta: Object,
+    initialValues: Object,
+    generate: String
+});
+
+const values = ref(props.initialValues);
+const isOpen = ref(false);
+
+watch(() => props.initialValues, (newVal) => {
+    values.value = newVal;
+});
+
+const save = () => {
+    isOpen.value = true;
+
+    Statamic.$axios.post('/cp/favicon-generator/update', values.value)
+        .then((response) => {
+            isOpen.value = false;
+
+            if(response.data.status && response.data.status == 'success') {
+                Statamic.$toast.success(response.data.msg);
+            } else {
+                Statamic.$toast.error('Error: ' + response.data.msg);
+            }
+
+            Statamic.$dirty.remove();
+        })
+        .catch((error) => {
+            console.log(error);
+            isOpen.value = false;
+        });
+};
 </script>
