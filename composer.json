@@ -1,5 +1,5 @@
 {
-    "name": "laborb/statamic-favicon-generator",
+    "name": "rogergrant99/statamic-favicon-generator",
     "description": "Generate realfavicon from your Statamic control panel",
     "type": "statamic-addon",
     "keywords": ["statamic-addon","favicon-generator","favicon","realfavicongenerator","realfavicon","real-favicon"],
