@@ -10,7 +10,6 @@
         generate="@lang('statamic-favicon-generator::cp.general.generate')"
     ></favicon-generator>
 
-
 @endsection
 
 <style>
