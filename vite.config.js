@@ -1,26 +1,22 @@
 import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
     plugins: [
-        vue(),
+        laravel({
+            publicDirectory: 'dist',
+            input: [
+                'resources/js/cp.js',
+            ],
+        }),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
     ],
-    build: {
-        lib: {
-            entry: 'resources/js/cp.js',
-            name: 'FaviconGenerator',
-            formats: ['umd'],
-            fileName: (format) => `js/favicon-generator.js`
-        },
-        rollupOptions: {
-            external: ['vue'],
-            output: {
-                globals: {
-                    vue: 'Vue'
-                }
-            }
-        },
-        outDir: 'dist',
-        emptyOutDir: true,
-    }
 });

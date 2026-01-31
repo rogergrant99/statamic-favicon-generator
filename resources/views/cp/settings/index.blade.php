@@ -1,6 +1,10 @@
 @extends('statamic::layout')
 @section('title', __('statamic-favicon-generator::cp.general.headline'))
 
+@push('head')
+    @vite(['resources/js/cp.js'])
+@endpush
+
 @section('content')
     <favicon-generator
         title="@lang('statamic-favicon-generator::cp.general.headline')"
@@ -9,6 +13,7 @@
         :initial-values='@json($values)'
         generate="@lang('statamic-favicon-generator::cp.general.generate')"
     ></favicon-generator>
+
 
 @endsection
 
