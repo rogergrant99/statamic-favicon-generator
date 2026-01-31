@@ -15,8 +15,11 @@ class ServiceProvider extends AddonServiceProvider
         'cp'  => __DIR__.'/../routes/cp.php',
     ];
 
-    protected $scripts = [
-        __DIR__.'/../dist/js/favicon-generator.js'
+    protected $vite = [
+        'input' => [
+            'resources/js/cp.js',
+        ],
+        'publicDirectory' => 'dist',
     ];
 
     protected $tags = [
