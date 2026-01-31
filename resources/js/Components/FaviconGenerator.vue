@@ -54,17 +54,17 @@ export default {
         save() {
             this.isOpen = true;
 
-            this.$axios.post('/cp/favicon-generator/update', this.values)
+            Statamic.$axios.post('/cp/favicon-generator/update', this.values)
             .then((response) => {
                 this.isOpen = false;
 
                 if(response.data.status && response.data.status == 'success') {
-                    this.$toast.success(response.data.msg);
+                    Statamic.$toast.success(response.data.msg);
                 } else {
-                    this.$toast.error('Error: ' + response.data.msg);
+                    Statamic.$toast.error('Error: ' + response.data.msg);
                 }
                 
-                this.$dirty.remove();
+                Statamic.Events.$emit('publish-form.saved');
             })
             .catch((error) => {
                 console.log(error);
