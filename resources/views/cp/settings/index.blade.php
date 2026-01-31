@@ -10,7 +10,10 @@
         generate="@lang('statamic-favicon-generator::cp.general.generate')"
     ></favicon-generator>
 
-
+    @include('statamic::partials.docs-callout', [
+		'topic' => 'Favicon Generator',
+		'url' => 'https://statamic.com/addons/laborb/favicon-generator'
+	])
 @endsection
 
 <style>
