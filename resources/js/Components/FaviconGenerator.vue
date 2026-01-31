@@ -6,7 +6,6 @@
             :blueprint="blueprint"
             :meta="meta"
             v-model="values"
-            v-slot="{ setFieldValue, setFieldMeta }"
         >
             <div>
                 <div class="flex items-center justify-between mb-3">
@@ -18,8 +17,8 @@
                 </div>
     
                 <publish-tabs
-                    @updated="setFieldValue"
-                    @meta-updated="setFieldMeta" />
+                    @updated="handleUpdated"
+                    @meta-updated="handleMetaUpdated" />
             </div>
         </publish-container>
 
@@ -47,8 +46,7 @@ export default {
     data() {
         return {
             values: this.initialValues,
-            isOpen: false,
-        }
+            isOpen: false
     },
     methods: {
         save() {
@@ -70,6 +68,12 @@ export default {
                 console.log(error);
                 this.isOpen = false;
             });
+        },
+        handleUpdated(handle, value) {
+            this.$refs.container.setFieldValue(handle, value);
+        },
+        handleMetaUpdated(handle, value) {
+            this.$refs.container.setFieldMeta(handle, value);
         }
     }
 }
