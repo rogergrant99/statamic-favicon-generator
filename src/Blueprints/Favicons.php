@@ -61,19 +61,16 @@ class Favicons
                             ],
                         ],
                         [
+                        [
                             'handle' => 'icon',
                             'field' => [
-                                'mode' => 'list',
-                                'max_files' => 1,
-                                'show_filename' => true,
-                                'allow_uploads' => true,
-                                'container' => self::getAssetsContainer()->handle(),
                                 'display' => __('statamic-favicon-generator::cp.settings.icon'),
                                 'instructions' => __('statamic-favicon-generator::cp.settings.icon_description'),
-                                'type' => 'assets',
-                                'icon' => 'assets',
+                                'type' => 'text', // Changed from 'assets' to 'text'
+                                'icon' => 'text',
                                 'visibility' => 'visible',
                                 'required' => true,
+                                'validate' => 'required|url', // Add URL validation
                             ],
                         ],
                         [
