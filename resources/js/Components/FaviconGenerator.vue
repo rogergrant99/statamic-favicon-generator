@@ -16,8 +16,18 @@
                     </p>
                 </div>
                 
+                <component
+                    :is="getFieldComponent(field.type)"
+                    v-if="getFieldComponent(field.type)"
+                    :config="field"
+                    :value="values[handle]"
+                    @input="updateValue(handle, $event)"
+                    :meta="meta[handle] || {}"
+                    :handle="handle"
+                />
+                
                 <input
-                    v-if="field.type === 'text'"
+                    v-else-if="field.type === 'text'"
                     v-model="values[handle]"
                     type="text"
                     class="input-text"
@@ -42,16 +52,8 @@
                     v-model="values[handle]"
                 />
                 
-                <relationship-fieldtype
-                    v-else-if="field.type === 'assets'"
-                    :config="field"
-                    :value="values[handle]"
-                    @input="updateValue(handle, $event)"
-                    :meta="meta[handle]"
-                />
-                
                 <div v-else class="text-gray-500 text-sm">
-                    Field type "{{ field.type }}" not supported: {{ field.type }}
+                    Field type "{{ field.type }}" not yet supported
                 </div>
             </div>
         </div>
@@ -119,6 +121,16 @@ export default {
     },
     
     methods: {
+        getFieldComponent(type) {
+            // Map field types to their component names in Statamic 6
+            const componentMap = {
+                'assets': 'assets-fieldtype',
+                'relationship': 'relationship-fieldtype',
+            };
+            
+            return componentMap[type] || null;
+        },
+        
         updateValue(handle, value) {
             this.values[handle] = value;
         },
