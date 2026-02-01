@@ -19,7 +19,7 @@
     <h3>Debug: Initial Values (Icon)</h3>
     <p>{{ $values['icon'] ?? 'N/A' }}</p>
     <h3>Debug: Initial Values (HTML Tags)</h3>
-    <pre>{{ $values['html_tags'] ?? 'N/A' }}</pre>
+    <pre>{{ e($values['html_tags'] ?? 'N/A') }}</pre>
     <h3>Debug: Initial Values (Generated At)</h3>
     <p>{{ $values['generated_at'] ?? 'N/A' }}</p>
 </div>
