@@ -42,6 +42,16 @@
                     v-model="values[handle]"
                 />
                 
+                <assets-fieldtype
+                    v-else-if="field.type === 'assets'"
+                    :config="field"
+                    :value="values[handle]"
+                    @input="updateValue(handle, $event)"
+                    :meta="meta[handle]"
+                    :handle="handle"
+                    :name="handle"
+                />
+                
                 <div v-else class="text-gray-500 text-sm">
                     Field type "{{ field.type }}" not supported in simple mode
                 </div>
@@ -111,6 +121,10 @@ export default {
     },
     
     methods: {
+        updateValue(handle, value) {
+            this.values[handle] = value;
+        },
+        
         save() {
             this.saving = true;
             this.$progress.start();
