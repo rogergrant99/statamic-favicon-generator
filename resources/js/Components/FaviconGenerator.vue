@@ -4,8 +4,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl">{{ title }}</h1>
-                    <p v-if="values.generated_at" class="text-sm text-gray-600 mt-1">
-                        Last generated: {{ values.generated_at }}
+                    <p v-if="formData.generated_at" class="text-sm text-gray-600 mt-1">
+                        Last generated: {{ formData.generated_at }}
                     </p>
                 </div>
                 <button 
@@ -20,32 +20,30 @@
         </header>
 
         <div class="card p-6 space-y-6">
-            <!-- Settings Introduction -->
-            <div v-if="values.settings_introduction">
-                <div class="prose prose-sm" v-html="values.settings_introduction"></div>
-            </div>
-
             <!-- API Key -->
             <div>
                 <label class="font-semibold block mb-2">API Key</label>
                 <input
-                    v-model="values.api_key"
+                    v-model="formData.api_key"
                     type="text"
                     class="input-text"
                     placeholder="Enter your RealFaviconGenerator API key"
                 />
+                <p class="text-xs text-gray-600 mt-1">
+                    Get your API key from <a href="https://realfavicongenerator.net/api" target="_blank" class="text-blue-600 hover:underline">RealFaviconGenerator.net</a>
+                </p>
             </div>
 
             <!-- Icon / Master Image -->
             <div>
                 <label class="font-semibold block mb-2">Master Icon</label>
-                <div v-if="values.icon" class="mb-2 p-3 bg-gray-50 border rounded">
+                <div v-if="formData.icon" class="mb-2 p-3 bg-gray-50 border rounded">
                     <div class="text-sm">
-                        <strong>Current:</strong> {{ values.icon }}
+                        <strong>Current:</strong> {{ getIconDisplay(formData.icon) }}
                     </div>
                 </div>
                 <input
-                    v-model="values.icon"
+                    v-model="formData.icon"
                     type="text"
                     class="input-text"
                     placeholder="Path to master icon (e.g., images/favicon-master.png)"
@@ -61,16 +59,16 @@
             <div>
                 <label class="font-semibold block mb-2">Generated HTML Tags</label>
                 <div class="bg-gray-900 text-gray-100 p-4 rounded font-mono text-xs overflow-x-auto">
-                    <pre v-if="values.html_tags">{{ values.html_tags }}</pre>
+                    <pre v-if="formData.html_tags">{{ formData.html_tags }}</pre>
                     <div v-else class="text-gray-500">No HTML tags generated yet. Click "{{ generate }}" to generate favicons.</div>
                 </div>
             </div>
         </div>
 
-        <!-- Debug (remove this later) -->
+        <!-- Debug -->
         <details class="mt-6">
             <summary class="cursor-pointer text-sm text-gray-600">Debug Info</summary>
-            <pre class="bg-gray-100 p-4 text-xs overflow-auto mt-2">{{ values }}</pre>
+            <pre class="bg-gray-100 p-4 text-xs overflow-auto mt-2">{{ formData }}</pre>
         </details>
     </div>
 </template>
@@ -93,19 +91,51 @@ export default {
     
     data() {
         return {
-            values: { ...this.initialValues } || {},
+            formData: {
+                api_key: '',
+                icon: '',
+                html_tags: '',
+                generated_at: ''
+            },
             saving: false
         }
     },
     
+    mounted() {
+        // Initialize form data from initial values
+        if (this.initialValues) {
+            this.formData = {
+                api_key: this.initialValues.api_key || '',
+                icon: this.getIconPath(this.initialValues.icon),
+                html_tags: this.initialValues.html_tags || '',
+                generated_at: this.initialValues.generated_at || ''
+            };
+        }
+    },
+    
     methods: {
+        getIconPath(icon) {
+            // Handle if icon is an array (from asset field)
+            if (Array.isArray(icon)) {
+                return icon.length > 0 ? icon[0] : '';
+            }
+            return icon || '';
+        },
+        
+        getIconDisplay(icon) {
+            if (Array.isArray(icon)) {
+                return icon.length > 0 ? icon.join(', ') : 'None';
+            }
+            return icon || 'None';
+        },
+        
         save() {
-            if (!this.values.api_key) {
+            if (!this.formData.api_key) {
                 this.$toast.error('Please enter an API key');
                 return;
             }
             
-            if (!this.values.icon) {
+            if (!this.formData.icon) {
                 this.$toast.error('Please select a master icon');
                 return;
             }
@@ -113,7 +143,7 @@ export default {
             this.saving = true;
             this.$progress.start();
             
-            this.$axios.post('/cp/favicon-generator/update', this.values)
+            this.$axios.post('/cp/favicon-generator/update', this.formData)
                 .then((response) => {
                     this.saving = false;
                     this.$progress.complete();
@@ -123,11 +153,11 @@ export default {
                         
                         // Update values from response
                         if (response.data.generated_at) {
-                            this.values.generated_at = response.data.generated_at;
+                            this.formData.generated_at = response.data.generated_at;
                         }
                         
                         if (response.data.html_tags) {
-                            this.values.html_tags = response.data.html_tags;
+                            this.formData.html_tags = response.data.html_tags;
                         }
                     } else {
                         this.$toast.error(response.data.msg || 'An error occurred');
