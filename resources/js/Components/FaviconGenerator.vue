@@ -98,23 +98,9 @@ export default {
                 generated_at: this.initialValues.generated_at !== undefined ? this.initialValues.generated_at : ''
             });
         }
-
-        // Add a small delay and re-assign, to see if it forces an update
-        setTimeout(() => {
-            if (this.initialValues) { // Re-check if initialValues exist
-                Object.assign(this.formData, {
-                    api_key: this.initialValues.api_key !== undefined ? this.initialValues.api_key : '',
-                    icon: this.initialValues.icon !== undefined ? this.initialValues.icon : '',
-                    html_tags: this.initialValues.html_tags !== undefined ? this.initialValues.html_tags : '',
-                    generated_at: this.initialValues.generated_at !== undefined ? this.initialValues.generated_at : ''
-                });
-            }
-            console.log('formData after setTimeout re-assignment:', this.formData);
-        }, 100); // 100ms delay
           },
           
-          methods: {        
-        save() {
+          methods: {        save() {
             if (!this.formData.api_key?.trim()) {
                 this.$toast.error('Please enter an API key');
                 return;
