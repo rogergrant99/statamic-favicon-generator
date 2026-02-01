@@ -24,6 +24,7 @@
                 <label class="font-semibold block mb-2">API Key</label>
                 <input
                     v-model="formData.api_key"
+                    ref="apiKeyInput"
                     type="text"
                     class="input-text"
                     placeholder="Enter your RealFaviconGenerator API key"
@@ -38,6 +39,7 @@
                 <label class="font-semibold block mb-2">Master Icon URL</label>
                 <input
                     v-model="formData.icon"
+                    ref="iconInput"
                     type="url"
                     class="input-text"
                     placeholder="https://yoursite.com/assets/favicons/icon.png"
@@ -99,6 +101,17 @@ export default {
             });
         }
         console.log('Mounted with data (after Object.assign):', this.formData);
+
+        this.$nextTick(() => {
+            if (this.$refs.apiKeyInput && this.formData.api_key) {
+                this.$refs.apiKeyInput.value = this.formData.api_key;
+                console.log('Manually set API Key Input DOM value:', this.$refs.apiKeyInput.value);
+            }
+            if (this.$refs.iconInput && this.formData.icon) {
+                this.$refs.iconInput.value = this.formData.icon;
+                console.log('Manually set Icon Input DOM value:', this.$refs.iconInput.value);
+            }
+        });
         
         console.log('Mounted with data:', this.formData);
     },
