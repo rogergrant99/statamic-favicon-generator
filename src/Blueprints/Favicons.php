@@ -61,17 +61,19 @@ class Favicons
                             ],
                         ],
                         [
-                            [
-                                'handle' => 'icon',
-                                'field' => [
-                                    'display' => __('statamic-favicon-generator::cp.settings.icon'),
-                                    'instructions' => __('statamic-favicon-generator::cp.settings.icon_description'),
-                                    'type' => 'text', // Changed from 'assets'
-                                    'icon' => 'text',
-                                    'visibility' => 'visible',
-                                    'required' => true,
-                                ],
-                            ],                        [
+                        [
+                            'handle' => 'icon',
+                            'field' => [
+                                'display' => __('statamic-favicon-generator::cp.settings.icon'),
+                                'instructions' => __('statamic-favicon-generator::cp.settings.icon_description'),
+                                'type' => 'text', // Changed from 'assets' to 'text'
+                                'icon' => 'text',
+                                'visibility' => 'visible',
+                                'required' => true,
+                                'validate' => 'required|url', // Add URL validation
+                            ],
+                        ],
+                        [
                             'handle' => 'html_tags',
                             'field' => [
                                 'type' => 'textarea',
