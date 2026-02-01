@@ -1,9 +1,9 @@
 <?php
 
-namespace Laborb\FaviconGenerator\Http\Controllers\Cp;
+namespace rogergrant99\FaviconGenerator\Http\Controllers\Cp;
 
 use Illuminate\Http\Request;
-use Laborb\FaviconGenerator\Blueprints\Favicons;
+use rogergrant99\FaviconGenerator\Blueprints\Favicons;
 use Statamic\Http\Controllers\CP\CpController;
 use Statamic\Facades\File;
 use Statamic\Facades\YAML;

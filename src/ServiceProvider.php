@@ -1,10 +1,10 @@
 <?php
 
-namespace Laborb\FaviconGenerator;
+namespace rogergrant99\FaviconGenerator;
 
 use Statamic\Providers\AddonServiceProvider;
 use Statamic\Facades\Utility;
-use Laborb\FaviconGenerator\Http\Controllers\Cp\FaviconController;
+use rogergrant99\FaviconGenerator\Http\Controllers\Cp\FaviconController;
 use Statamic\Facades\AssetContainer;
 
 class ServiceProvider extends AddonServiceProvider
@@ -23,7 +23,7 @@ class ServiceProvider extends AddonServiceProvider
     ];
 
     protected $tags = [
-        \Laborb\FaviconGenerator\Tags\Favicon::class,
+        \rogergrant99\FaviconGenerator\Tags\Favicon::class,
     ];
 
     protected $translations = true;
@@ -48,7 +48,7 @@ class ServiceProvider extends AddonServiceProvider
         if (!file_exists(base_path(config('statamic.favicons.path')))) {
             $this->publishes([
                 __DIR__.'/../content/addons/favicons.yaml' => config('statamic.favicons.path'),
-            ], 'laborb-favicon-generator-content');
+            ], 'rogergrant99-favicon-generator-content');
         };
     }
 }

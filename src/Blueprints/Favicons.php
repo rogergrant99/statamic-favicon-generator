@@ -1,6 +1,6 @@
 <?php
 
-namespace Laborb\FaviconGenerator\Blueprints;
+namespace rogergrant99\FaviconGenerator\Blueprints;
 
 use Statamic\Facades\Blueprint;
 use Statamic\Facades\YAML;
@@ -19,9 +19,7 @@ class Favicons
 
     public static function values()
     {
-        return collect(YAML::file(config('statamic.favicons.path'))->parse())
-            ->merge(YAML::file(config('statamic.favicons.path'))->parse())
-            ->all();
+        return YAML::file(config('statamic.favicons.path'))->parse();
     }
 
     public static function getAssetsContainer()

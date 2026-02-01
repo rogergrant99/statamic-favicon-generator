@@ -1,9 +1,9 @@
 <?php
 
-namespace Laborb\FaviconGenerator\Tags;
+namespace rogergrant99\FaviconGenerator\Tags;
 
 use Statamic\Tags\Tags;
-use Laborb\FaviconGenerator\Blueprints\Favicons;
+use rogergrant99\FaviconGenerator\Blueprints\Favicons;
 use Illuminate\Support\Facades\Log;
 
 class Favicon extends Tags
@@ -15,8 +15,8 @@ class Favicon extends Tags
      */
     public function index()
     {
-        return '<!-- laborb Favicon Generator Tags -->'
+        return '<!-- rogergrant99 Favicon Generator Tags -->'
             . Favicons::augmentedValues()['html_tags']
-            . '<!-- /laborb Favicon Generator Tags -->';
+            . '<!-- /rogergrant99 Favicon Generator Tags -->';
     }
 }

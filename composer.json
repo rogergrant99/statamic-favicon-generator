@@ -3,19 +3,19 @@
     "description": "Generate realfavicon from your Statamic control panel",
     "type": "statamic-addon",
     "keywords": ["statamic-addon","favicon-generator","favicon","realfavicongenerator","realfavicon","real-favicon"],
-    "homepage": "https://laborb.de",
+    "homepage": "https://rogergrant99.de",
     "license": "MIT",
     "authors": [
         {
             "name": "Holger Schillack",
-            "email": "hs@laborb.de",
-            "homepage": "https://laborb.de",
+            "email": "hs@rogergrant99.de",
+            "homepage": "https://rogergrant99.de",
             "role": "Developer"
         },
         {
             "name": "Jannis Forsthövel",
-            "email": "jf@laborb.de",
-            "homepage": "https://laborb.de",
+            "email": "jf@rogergrant99.de",
+            "homepage": "https://rogergrant99.de",
             "role": "Developer"
         }
     ],
@@ -25,7 +25,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Laborb\\FaviconGenerator\\": "src"
+            "rogergrant99\\FaviconGenerator\\": "src"
         }
     },
     "extra": {
@@ -35,7 +35,7 @@
         },
         "laravel": {
             "providers": [
-                "Laborb\\FaviconGenerator\\ServiceProvider"
+                "rogergrant99\\FaviconGenerator\\ServiceProvider"
             ]
         }
     },
