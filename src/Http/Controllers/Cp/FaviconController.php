@@ -104,7 +104,7 @@ public function generate(Request $request) {
 			], 200);
 		} else {
 			$apiResponse = $response->json();
-            Log::error('RealFaviconGenerator API Error:', $apiResponse); // Log the full response
+            Log::error('RealFaviconGenerator API Error:', (array) $apiResponse); // Log the full response
 
             $errorMessage = 'An unknown error occurred with the RealFaviconGenerator API.';
 
