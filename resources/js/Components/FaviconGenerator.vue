@@ -88,14 +88,17 @@ export default {
     
     mounted() {
         if (this.initialValues) {
-            this.formData.settings_introduction = this.initialValues.settings_introduction || true;
-            this.formData.api_key = this.initialValues.api_key || '';
-            this.formData.icon = this.getIconValue(this.initialValues.icon);
-            this.formData.html_tags = this.initialValues.html_tags || '';
-            this.formData.generated_at = this.initialValues.generated_at || '';
+            // Assign properties directly from initialValues
+            // Use Object.assign to merge properties into the reactive formData object
+            Object.assign(this.formData, {
+                settings_introduction: this.initialValues.settings_introduction !== undefined ? this.initialValues.settings_introduction : true,
+                api_key: this.initialValues.api_key !== undefined ? this.initialValues.api_key : '',
+                icon: this.initialValues.icon !== undefined ? this.initialValues.icon : '',
+                html_tags: this.initialValues.html_tags !== undefined ? this.initialValues.html_tags : '',
+                generated_at: this.initialValues.generated_at !== undefined ? this.initialValues.generated_at : ''
+            });
         }
-        
-        console.log('Mounted with data (after assignments):', this.formData);
+        console.log('Mounted with data (after Object.assign):', this.formData);
         
         console.log('Mounted with data:', this.formData);
     },
