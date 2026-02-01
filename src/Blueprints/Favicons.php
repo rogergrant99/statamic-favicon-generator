@@ -70,7 +70,7 @@ class Favicons
                                 'container' => self::getAssetsContainer()->handle(),
                                 'display' => __('statamic-favicon-generator::cp.settings.icon'),
                                 'instructions' => __('statamic-favicon-generator::cp.settings.icon_description'),
-                                'type' => 'assets',
+                                'type' => 'text',
                                 'icon' => 'assets',
                                 'visibility' => 'visible',
                                 'required' => true,
