@@ -52,10 +52,7 @@ final class FaviconController extends CpController
 
 public function generate(Request $request) {
     $apiKey = $request->input('api_key');
-    
-    // Get icon - handle as array since blueprint expects assets field
-    $iconInput = $request->input('icon');
-    $masterImage = is_array($iconInput) ? ($iconInput[0] ?? '') : $iconInput;
+    $masterImage = $request->input('icon'); // Now it's just a URL string
     
     $apiUrl = 'https://realfavicongenerator.net/api/favicon';
     $filesLocationPath = '/' . Favicons::getAssetsContainer()['id'] . '/';
@@ -82,12 +79,6 @@ public function generate(Request $request) {
         $values = $request->all();
         $values['html_tags'] = $response->json('favicon_generation_result.favicon.html_code');
         $values['generated_at'] = now()->format('Y-m-d H:i:s');
-        
-        // Keep icon as array for saving
-        if (!is_array($values['icon'])) {
-            $values['icon'] = [$values['icon']];
-        }
-        
         $blueprint = Favicons::blueprint();
         $fields = $blueprint->fields()->addValues($values);
         $fields->validate();
