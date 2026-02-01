@@ -24,7 +24,6 @@
                 <label class="font-semibold block mb-2">API Key</label>
                 <input
                     v-model="formData.api_key"
-                    ref="apiKeyInput"
                     type="text"
                     class="input-text"
                     placeholder="Enter your RealFaviconGenerator API key"
@@ -100,10 +99,6 @@ export default {
             });
         }
         console.log('Mounted with data (after Object.assign):', this.formData);
-        // Log the actual DOM element value to check binding
-        if (this.$refs.apiKeyInput) {
-            console.log('API Key Input DOM value:', this.$refs.apiKeyInput.value);
-        }
         
         console.log('Mounted with data:', this.formData);
     },
