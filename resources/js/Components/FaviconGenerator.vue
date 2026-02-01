@@ -15,13 +15,11 @@
                     </div>
                     <button class="btn-primary" @click="save()">{{ generate }}</button>
                 </div>
-    
                 <publish-tabs
                     @updated="updateValue"
                     @meta-updated="updateMeta" />
             </div>
         </publish-container>
-
         <modal
             v-if="isOpen"
             name="my-modal"
@@ -51,28 +49,31 @@ export default {
     },
     methods: {
         updateValue(handle, value) {
-            if (this.$refs.container) {
-                this.$refs.container.setFieldValue(handle, value);
-            }
+            // Use nextTick to ensure the ref is available
+            this.$nextTick(() => {
+                if (this.$refs.container) {
+                    this.$refs.container.setFieldValue(handle, value);
+                }
+            });
         },
         updateMeta(handle, value) {
-            if (this.$refs.container) {
-                this.$refs.container.setFieldMeta(handle, value);
-            }
+            // Use nextTick to ensure the ref is available
+            this.$nextTick(() => {
+                if (this.$refs.container) {
+                    this.$refs.container.setFieldMeta(handle, value);
+                }
+            });
         },
         save() {
             this.isOpen = true;
-
             Statamic.$axios.post('/cp/favicon-generator/update', this.values)
             .then((response) => {
                 this.isOpen = false;
-
                 if(response.data.status && response.data.status == 'success') {
                     Statamic.$toast.success(response.data.msg);
                 } else {
                     Statamic.$toast.error('Error: ' + response.data.msg);
                 }
-                
                 Statamic.Events.$emit('publish-form.saved');
             })
             .catch((error) => {
