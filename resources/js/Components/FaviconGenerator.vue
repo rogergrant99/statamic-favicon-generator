@@ -32,7 +32,7 @@
                 </div>
             </header>
 
-            <publish-fields
+            <publish-tabs
                 :fields="allFields"
                 @updated="setFieldValue($event.handle, $event.value)"
                 @meta-updated="container.setFieldMeta($event.handle, $event.value)"
