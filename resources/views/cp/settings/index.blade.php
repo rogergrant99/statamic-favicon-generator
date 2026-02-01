@@ -1,7 +1,9 @@
 @extends('statamic::layout')
 @section('title', __('statamic-favicon-generator::cp.general.headline'))
 
-
+@push('head')
+    @vite(['statamic-favicon-generator/resources/js/cp.js'])
+@endpush
 
 @section('content')
     <favicon-generator
