@@ -31,7 +31,7 @@
                     placeholder="Enter your RealFaviconGenerator API key"
                 />
                 <p class="text-xs text-gray-600 mt-1">
-                    Current value: "{{ formData.api_key }}" (length: {{ (formData.api_key || '').length }})
+                    Get your API key from <a href="https://realfavicongenerator.net/api" target="_blank" class="text-blue-600 hover:underline">RealFaviconGenerator.net</a>
                 </p>
             </div>
 
@@ -43,10 +43,10 @@
                     @input="formData.icon = $event.target.value"
                     type="text"
                     class="input-text"
-                    placeholder="Path to master icon (e.g., images/favicon-master.png)"
+                    placeholder="favicons/icon.png or just icon.png"
                 />
                 <p class="text-xs text-gray-600 mt-1">
-                    Current value: "{{ formData.icon }}" | 
+                    Enter the filename or path (without leading slash) | 
                     <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a>
                 </p>
             </div>
@@ -56,21 +56,20 @@
                 <label class="font-semibold block mb-2">Generated HTML Tags</label>
                 <div class="bg-gray-900 text-gray-100 p-4 rounded font-mono text-xs overflow-x-auto max-h-64">
                     <pre v-if="formData.html_tags">{{ formData.html_tags }}</pre>
-                    <div v-else class="text-gray-500">No HTML tags generated yet. Click "{{ generate }}" to generate favicons.</div>
+                    <div v-else class="text-gray-500">No HTML tags generated yet.</div>
                 </div>
             </div>
         </div>
 
-        <!-- Debug -->
-        <details class="mt-6">
-            <summary class="cursor-pointer text-sm text-gray-600 font-semibold">Debug Info</summary>
-            <div class="mt-2 space-y-2">
-                <div class="bg-green-50 border border-green-200 p-3 rounded">
-                    <strong>Form Data:</strong>
-                    <pre class="text-xs mt-1">{{ JSON.stringify(formData, null, 2) }}</pre>
-                </div>
-            </div>
-        </details>
+        <!-- Validation Errors -->
+        <div v-if="validationErrors" class="mt-4 p-4 bg-red-50 border border-red-200 rounded">
+            <h3 class="font-semibold text-red-800 mb-2">Validation Errors:</h3>
+            <ul class="list-disc list-inside text-sm text-red-700">
+                <li v-for="(errors, field) in validationErrors" :key="field">
+                    <strong>{{ field }}:</strong> {{ errors.join(', ') }}
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -100,7 +99,8 @@ export default {
                 html_tags: '',
                 generated_at: ''
             }),
-            saving: false
+            saving: false,
+            validationErrors: null
         }
     },
     
@@ -112,8 +112,6 @@ export default {
             this.formData.html_tags = this.initialValues.html_tags || '';
             this.formData.generated_at = this.initialValues.generated_at || '';
         }
-        
-        console.log('Initialized form data:', this.formData);
     },
     
     methods: {
@@ -121,11 +119,15 @@ export default {
             if (Array.isArray(icon)) {
                 return icon.length > 0 ? icon[0] : '';
             }
+            // Remove leading slash if present
+            if (typeof icon === 'string' && icon.startsWith('/')) {
+                return icon.substring(1);
+            }
             return icon || '';
         },
         
         save() {
-            console.log('Saving with data:', this.formData);
+            this.validationErrors = null;
             
             if (!this.formData.api_key || this.formData.api_key.trim() === '') {
                 this.$toast.error('Please enter an API key');
@@ -140,9 +142,15 @@ export default {
             this.saving = true;
             this.$progress.start();
             
+            // Clean the icon path - remove leading slash
+            let iconPath = this.formData.icon;
+            if (iconPath.startsWith('/')) {
+                iconPath = iconPath.substring(1);
+            }
+            
             const payload = {
                 api_key: this.formData.api_key,
-                icon: this.formData.icon,
+                icon: iconPath,
                 html_tags: this.formData.html_tags,
                 generated_at: this.formData.generated_at
             };
@@ -171,10 +179,18 @@ export default {
                 .catch((error) => {
                     this.saving = false;
                     this.$progress.complete();
-                    console.error('Error:', error);
                     
-                    const errorMsg = error.response?.data?.message || error.message || 'Failed to generate favicons';
-                    this.$toast.error(errorMsg);
+                    console.error('Full error:', error);
+                    console.error('Error response:', error.response);
+                    
+                    // Show validation errors if they exist
+                    if (error.response?.status === 422 && error.response?.data?.errors) {
+                        this.validationErrors = error.response.data.errors;
+                        this.$toast.error('Validation failed. Check the errors below.');
+                    } else {
+                        const errorMsg = error.response?.data?.message || error.message || 'Failed to generate favicons';
+                        this.$toast.error(errorMsg);
+                    }
                 });
         }
     }
