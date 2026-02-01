@@ -2,9 +2,6 @@
 @section('title', __('statamic-favicon-generator::cp.general.headline'))
 
 @section('content')
-<script>
-    console.log('Initial values received by frontend:', @json($values));
-</script>
 <favicon-generator
     title="@lang('statamic-favicon-generator::cp.general.headline')"
     :blueprint='@json($blueprint)'
