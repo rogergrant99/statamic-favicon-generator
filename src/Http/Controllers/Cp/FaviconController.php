@@ -113,7 +113,7 @@ public function generate(Request $request) {
             } elseif (isset($apiResponse['favicon_generation_result']['result']['status'])) {
                 $errorMessage = 'RealFaviconGenerator API Status: ' . $apiResponse['favicon_generation_result']['result']['status'];
             } elseif ($response->status() !== 200) {
-                $errorMessage = 'RealFaviconGenerator API returned HTTP status code: ' . $response->status();
+                $errorMessage = 'RealFaviconGenerator API returned HTTP status code: ' . $response->status() . '. Response body: ' . $response->body();
             }
 
             return response()->json([
