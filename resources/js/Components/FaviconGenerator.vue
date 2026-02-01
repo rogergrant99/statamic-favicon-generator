@@ -39,8 +39,8 @@
             <div>
                 <label class="font-semibold block mb-2">Master Icon URL</label>
                 <input
-                    :value="formData.icon_url"
-                    @input="formData.icon_url = $event.target.value"
+                    :value="formData.icon"
+                    @input="formData.icon = $event.target.value"
                     type="url"
                     class="input-text"
                     placeholder="https://yoursite.com/assets/favicons/icon.png"
@@ -79,8 +79,9 @@ export default {
     data() {
         return {
             formData: reactive({
+                settings_introduction: true,
                 api_key: '',
-                icon_url: '',
+                icon: '',
                 html_tags: '',
                 generated_at: ''
             }),
@@ -90,21 +91,32 @@ export default {
     
     mounted() {
         if (this.initialValues) {
+            this.formData.settings_introduction = this.initialValues.settings_introduction || true;
             this.formData.api_key = this.initialValues.api_key || '';
-            this.formData.icon_url = this.initialValues.icon_url || '';
+            this.formData.icon = this.getIconValue(this.initialValues.icon);
             this.formData.html_tags = this.initialValues.html_tags || '';
             this.formData.generated_at = this.initialValues.generated_at || '';
         }
+        
+        console.log('Mounted with data:', this.formData);
     },
     
     methods: {
+        getIconValue(icon) {
+            // Handle array (from assets field)
+            if (Array.isArray(icon)) {
+                return icon.length > 0 ? icon[0] : '';
+            }
+            return icon || '';
+        },
+        
         save() {
             if (!this.formData.api_key?.trim()) {
                 this.$toast.error('Please enter an API key');
                 return;
             }
             
-            if (!this.formData.icon_url?.trim()) {
+            if (!this.formData.icon?.trim()) {
                 this.$toast.error('Please enter the icon URL');
                 return;
             }
@@ -112,15 +124,22 @@ export default {
             this.saving = true;
             this.$progress.start();
             
-            this.$axios.post('/cp/favicon-generator/update', {
+            const payload = {
+                settings_introduction: this.formData.settings_introduction,
                 api_key: this.formData.api_key,
-                icon_url: this.formData.icon_url,
+                icon: this.formData.icon, // Send as string (URL)
                 html_tags: this.formData.html_tags,
                 generated_at: this.formData.generated_at
-            })
+            };
+            
+            console.log('Sending:', payload);
+            
+            this.$axios.post('/cp/favicon-generator/update', payload)
                 .then((response) => {
                     this.saving = false;
                     this.$progress.complete();
+                    
+                    console.log('Response:', response.data);
                     
                     if (response.data.status === 'success') {
                         this.$toast.success(response.data.msg || 'Favicons generated successfully');
@@ -139,6 +158,8 @@ export default {
                 .catch((error) => {
                     this.saving = false;
                     this.$progress.complete();
+                    
+                    console.error('Error:', error.response?.data);
                     this.$toast.error(error.response?.data?.message || 'Failed to generate favicons');
                 });
         }
