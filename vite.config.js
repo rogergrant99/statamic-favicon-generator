@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
     plugins: [
         laravel({
+            publicDirectory: 'dist',
             input: [
                 'resources/js/cp.js',
             ],

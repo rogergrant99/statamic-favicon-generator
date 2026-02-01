@@ -15,6 +15,13 @@ class ServiceProvider extends AddonServiceProvider
         'cp'  => __DIR__.'/../routes/cp.php',
     ];
 
+    protected $vite = [
+        'input' => [
+            'resources/js/cp.js',
+        ],
+        'publicDirectory' => 'dist',
+    ];
+
     protected $tags = [
         \Laborb\FaviconGenerator\Tags\Favicon::class,
     ];
