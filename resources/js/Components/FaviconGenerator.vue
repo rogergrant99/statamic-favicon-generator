@@ -127,8 +127,8 @@ export default {
             const payload = {
                 settings_introduction: this.formData.settings_introduction,
                 api_key: this.formData.api_key,
-                icon: this.formData.icon, // Send as string (URL)
-                html_tags: this.formData.html_tags,
+                icon: [this.formData.icon], // Send as array to satisfy the assets field validation
+                html_tags: this.formData.html_tags || null,
                 generated_at: this.formData.generated_at
             };
             

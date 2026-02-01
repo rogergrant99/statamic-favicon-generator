@@ -52,7 +52,10 @@ final class FaviconController extends CpController
 
 public function generate(Request $request) {
     $apiKey = $request->input('api_key');
-    $masterImage = $request->input('icon'); // Now it's just a URL string
+    
+    // Get icon - handle as array since blueprint expects assets field
+    $iconInput = $request->input('icon');
+    $masterImage = is_array($iconInput) ? ($iconInput[0] ?? '') : $iconInput;
     
     $apiUrl = 'https://realfavicongenerator.net/api/favicon';
     $filesLocationPath = '/' . Favicons::getAssetsContainer()['id'] . '/';
@@ -65,50 +68,42 @@ public function generate(Request $request) {
     
     $response = Http::timeout(120)->post($apiUrl, $payload);
 
+    if ($response->successful() && $response->json('favicon_generation_result.result.status') == 'success') {
+        $zipUrl = $response->json('favicon_generation_result.favicon.package_url');
+        $zipFile = sys_get_temp_dir() . '/favicons.zip';
+        file_put_contents($zipFile, file_get_contents($zipUrl));
+        $zip = new ZipArchive;
+        $zip->open($zipFile);
+        $faviconsDirectory = public_path($filesLocationPath);
+        $zip->extractTo($faviconsDirectory);
+        $zip->close();
+        unlink($zipFile);
 
-		if ($response->successful() && $response->json('favicon_generation_result.result.status') == 'success') {
+        $values = $request->all();
+        $values['html_tags'] = $response->json('favicon_generation_result.favicon.html_code');
+        $values['generated_at'] = now()->format('Y-m-d H:i:s');
+        
+        // Keep icon as array for saving
+        if (!is_array($values['icon'])) {
+            $values['icon'] = [$values['icon']];
+        }
+        
+        $blueprint = Favicons::blueprint();
+        $fields = $blueprint->fields()->addValues($values);
+        $fields->validate();
+        File::put(config('statamic.favicons.path'), YAML::dump($fields->process()->values()->all()));
 
-			// Handle generated zip file
-			$zipUrl = $response->json('favicon_generation_result.favicon.package_url');
-			$zipFile = sys_get_temp_dir() . '/favicons.zip';
-
-			file_put_contents($zipFile, file_get_contents($zipUrl));
-
-			$zip = new ZipArchive;
-			$zip->open($zipFile);
-
-			$faviconsDirectory = public_path($filesLocationPath);
-
-			$zip->extractTo($faviconsDirectory);
-			$zip->close();
-
-			unlink($zipFile);
-
-			// Write new blueprint values
-			$values = $request->all();
-
-			$values['html_tags'] = $response->json('favicon_generation_result.favicon.html_code');
-			$values['generated_at'] = now()->format('Y-m-d H:i:s');
-
-			$blueprint = Favicons::blueprint();
-
-			$fields = $blueprint->fields()->addValues($values);
-
-			$fields->validate();
-
-			File::put(config('statamic.favicons.path'), YAML::dump($fields->process()->values()->all()));
-
-			return response()->json([
-				'status' => 'success',
-				'msg' => 'Saved and generated'
-			], 200);
-		} else {
-			Log::error($response->json());
-			
-			return response()->json([
-				'status' => 'error',
-				'msg' => $response->json('favicon_generation_result.result.error_message')
-			], 200);
-		}
-	}
+        return response()->json([
+            'status' => 'success',
+            'msg' => 'Saved and generated',
+            'generated_at' => $values['generated_at'],
+            'html_tags' => $values['html_tags']
+        ], 200);
+    } else {
+        Log::error($response->json());
+        return response()->json([
+            'status' => 'error',
+            'msg' => $response->json('favicon_generation_result.result.error_message')
+        ], 200);
+    }
 }
