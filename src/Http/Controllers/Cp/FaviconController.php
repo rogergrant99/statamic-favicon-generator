@@ -103,12 +103,23 @@ public function generate(Request $request) {
 				'msg' => 'Saved and generated'
 			], 200);
 		} else {
-			Log::error($response->json());
-			
-			return response()->json([
-				'status' => 'error',
-				'msg' => $response->json('favicon_generation_result.result.error_message')
-			], 200);
+			$apiResponse = $response->json();
+            Log::error('RealFaviconGenerator API Error:', $apiResponse); // Log the full response
+
+            $errorMessage = 'An unknown error occurred with the RealFaviconGenerator API.';
+
+            if (isset($apiResponse['favicon_generation_result']['result']['error_message'])) {
+                $errorMessage = $apiResponse['favicon_generation_result']['result']['error_message'];
+            } elseif (isset($apiResponse['favicon_generation_result']['result']['status'])) {
+                $errorMessage = 'RealFaviconGenerator API Status: ' . $apiResponse['favicon_generation_result']['result']['status'];
+            } elseif ($response->status() !== 200) {
+                $errorMessage = 'RealFaviconGenerator API returned HTTP status code: ' . $response->status();
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'msg' => $errorMessage
+            ], 200);
 		}
 	}
 }
