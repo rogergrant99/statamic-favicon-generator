@@ -6,7 +6,7 @@
         :values="values"
         @updated="values = $event"
     >
-        <div slot-scope="{ container }">
+        <template #default="{ container, setFieldValue }">
             <header class="mb-6">
                 <div class="flex items-center justify-between">
                     <div>
@@ -17,7 +17,7 @@
                     </div>
                     <button 
                         class="btn-primary"
-                        @click="save(container)"
+                        @click="save"
                         :disabled="saving"
                     >
                         <span v-if="saving">
@@ -32,11 +32,12 @@
                 </div>
             </header>
 
-            <publish-sections 
-                :sections="blueprint.sections"
-                @updated="container.setFieldValue($event.handle, $event.value)"
+            <publish-fields
+                :fields="allFields"
+                @updated="setFieldValue($event.handle, $event.value)"
+                @meta-updated="container.setFieldMeta($event.handle, $event.value)"
             />
-        </div>
+        </template>
     </publish-container>
 </template>
 
@@ -63,15 +64,30 @@ export default {
         }
     },
     
+    computed: {
+        allFields() {
+            if (!this.blueprint || !this.blueprint.tabs) return [];
+            
+            const fields = [];
+            this.blueprint.tabs.forEach(tab => {
+                if (tab.sections) {
+                    tab.sections.forEach(section => {
+                        if (section.fields) {
+                            fields.push(...section.fields);
+                        }
+                    });
+                }
+            });
+            return fields;
+        }
+    },
+    
     methods: {
-        save(container) {
+        save() {
             this.saving = true;
             this.$progress.start();
             
-            // Get values from container if available
-            const dataToSave = container?.values?.() || this.values;
-            
-            this.$axios.post('/cp/favicon-generator/update', dataToSave)
+            this.$axios.post('/cp/favicon-generator/update', this.values)
                 .then((response) => {
                     this.saving = false;
                     this.$progress.complete();
