@@ -4,10 +4,9 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl">{{ title }}</h1>
-                    <p v-if="formData.generated_at" class="text-sm text-gray-600 mt-1">
-                        Last generated: {{ formData.generated_at }}
-                    </p>
-                </div>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    Last generated: {{ formData.generated_at }}
+                                </p>                </div>
                 <button 
                     class="btn-primary"
                     @click="save"
@@ -24,8 +23,7 @@
             <div>
                 <label class="font-semibold block mb-2">API Key</label>
                 <input
-                    :value="formData.api_key"
-                    @input="formData.api_key = $event.target.value"
+                    v-model="formData.api_key"
                     type="text"
                     class="input-text"
                     placeholder="Enter your RealFaviconGenerator API key"
@@ -39,8 +37,7 @@
             <div>
                 <label class="font-semibold block mb-2">Master Icon URL</label>
                 <input
-                    :value="formData.icon"
-                    @input="formData.icon = $event.target.value"
+                    v-model="formData.icon"
                     type="url"
                     class="input-text"
                     placeholder="https://yoursite.com/assets/favicons/icon.png"
