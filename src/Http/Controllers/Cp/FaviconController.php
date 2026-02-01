@@ -50,20 +50,19 @@ final class FaviconController extends CpController
         return $this->generate($request);
     }
 
-	public function generate(Request $request) {
-		$apiKey = Favicons::values()['api_key'];
-		$masterImage = Favicons::augmentedValues()['icon']->value()['permalink'];
+public function generate(Request $request) {
+    $apiKey = $request->input('api_key');
+    $masterImage = $request->input('icon_url'); // Direct URL
+    
+    $apiUrl = 'https://realfavicongenerator.net/api/favicon';
+    $filesLocationPath = '/' . Favicons::getAssetsContainer()['id'] . '/';
 
-		$apiUrl = 'https://realfavicongenerator.net/api/favicon';
-		$filesLocationPath = '/' . Favicons::getAssetsContainer()['id'] . '/';
-
-		// Overwrite config values
-		$payload = config('statamic.favicons.payload');
-		$payload['favicon_generation']['api_key'] = $apiKey;
-		$payload['favicon_generation']['master_picture']['url'] = $masterImage;
-		$payload['favicon_generation']['files_location']['path'] = $filesLocationPath;
-		$payload['favicon_generation']['versioning']['param_value'] = Str::random(6);
-
+    $payload = config('statamic.favicons.payload');
+    $payload['favicon_generation']['api_key'] = $apiKey;
+    $payload['favicon_generation']['master_picture']['url'] = $masterImage;
+    $payload['favicon_generation']['files_location']['path'] = $filesLocationPath;
+    $payload['favicon_generation']['versioning']['param_value'] = Str::random(6);
+    
 		$response = Http::timeout(120)->post($apiUrl, $payload);
 
 		if ($response->successful() && $response->json('favicon_generation_result.result.status') == 'success') {

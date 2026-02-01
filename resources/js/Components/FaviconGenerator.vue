@@ -35,20 +35,20 @@
                 </p>
             </div>
 
-            <!-- Icon / Master Image -->
+            <!-- Icon URL -->
             <div>
-                <label class="font-semibold block mb-2">Master Icon</label>
+                <label class="font-semibold block mb-2">Master Icon URL</label>
                 <input
-                    :value="formData.icon"
-                    @input="formData.icon = $event.target.value"
-                    type="text"
+                    :value="formData.icon_url"
+                    @input="formData.icon_url = $event.target.value"
+                    type="url"
                     class="input-text"
-                    placeholder="assets::path/to/file.png or container::path/to/file.png"
+                    placeholder="https://yoursite.com/assets/favicons/icon.png"
                 />
                 <p class="text-xs text-gray-600 mt-1">
-                    Format: <code class="bg-gray-100 px-1">container::path/to/file.png</code> (e.g., <code class="bg-gray-100 px-1">assets::favicons/icon.png</code>)
+                    Enter the full public URL to your master favicon image (must be at least 512x512px and publicly accessible).
                     <br>
-                    <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a> to find the file
+                    <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a>, right-click on your image, and copy the URL.
                 </p>
             </div>
 
@@ -61,16 +61,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Validation Errors -->
-        <div v-if="validationErrors" class="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-            <h3 class="font-semibold text-red-800 mb-2">Validation Errors:</h3>
-            <ul class="list-disc list-inside text-sm text-red-700">
-                <li v-for="(errors, field) in validationErrors" :key="field">
-                    <strong>{{ field }}:</strong> {{ errors.join(', ') }}
-                </li>
-            </ul>
-        </div>
     </div>
 </template>
 
@@ -79,93 +69,58 @@ import { reactive } from 'vue';
 
 export default {
     props: {
-        title: {
-            type: String,
-            default: 'Favicon Generator'
-        },
+        title: String,
         blueprint: Object,
         meta: Object,
         initialValues: Object,
-        generate: {
-            type: String,
-            default: 'Generate Favicons'
-        }
+        generate: String
     },
     
     data() {
         return {
             formData: reactive({
                 api_key: '',
-                icon: '',
+                icon_url: '',
                 html_tags: '',
                 generated_at: ''
             }),
-            saving: false,
-            validationErrors: null
+            saving: false
         }
     },
     
     mounted() {
-        // Initialize form data from initial values
         if (this.initialValues) {
             this.formData.api_key = this.initialValues.api_key || '';
-            this.formData.icon = this.getIconPath(this.initialValues.icon);
+            this.formData.icon_url = this.initialValues.icon_url || '';
             this.formData.html_tags = this.initialValues.html_tags || '';
             this.formData.generated_at = this.initialValues.generated_at || '';
         }
-        
-        console.log('Initial values received:', this.initialValues);
-        console.log('Meta data:', this.meta);
     },
     
     methods: {
-        getIconPath(icon) {
-            if (Array.isArray(icon)) {
-                return icon.length > 0 ? icon[0] : '';
-            }
-            return icon || '';
-        },
-        
         save() {
-            this.validationErrors = null;
-            
-            if (!this.formData.api_key || this.formData.api_key.trim() === '') {
+            if (!this.formData.api_key?.trim()) {
                 this.$toast.error('Please enter an API key');
                 return;
             }
             
-            if (!this.formData.icon || this.formData.icon.trim() === '') {
-                this.$toast.error('Please select a master icon');
-                return;
-            }
-            
-            // Validate icon format
-            const iconValue = this.formData.icon.trim();
-            if (!iconValue.includes('::')) {
-                this.$toast.error('Icon must be in format: container::path/to/file.png (e.g., assets::favicons/icon.png)');
+            if (!this.formData.icon_url?.trim()) {
+                this.$toast.error('Please enter the icon URL');
                 return;
             }
             
             this.saving = true;
             this.$progress.start();
             
-            // Format payload to match what the blueprint expects
-            const payload = {
+            this.$axios.post('/cp/favicon-generator/update', {
                 api_key: this.formData.api_key,
-                icon: [iconValue], // Send as array with full container::path format
+                icon_url: this.formData.icon_url,
                 html_tags: this.formData.html_tags,
-                generated_at: this.formData.generated_at,
-                settings_introduction: this.initialValues.settings_introduction || ''
-            };
-            
-            console.log('Sending payload:', payload);
-            
-            this.$axios.post('/cp/favicon-generator/update', payload)
+                generated_at: this.formData.generated_at
+            })
                 .then((response) => {
                     this.saving = false;
                     this.$progress.complete();
-                    
-                    console.log('Success response:', response.data);
                     
                     if (response.data.status === 'success') {
                         this.$toast.success(response.data.msg || 'Favicons generated successfully');
@@ -184,20 +139,7 @@ export default {
                 .catch((error) => {
                     this.saving = false;
                     this.$progress.complete();
-                    
-                    console.error('Full error:', error);
-                    console.error('Error response data:', error.response?.data);
-                    
-                    // Show validation errors if they exist
-                    if (error.response?.status === 422 && error.response?.data?.errors) {
-                        this.validationErrors = error.response.data.errors;
-                        this.$toast.error('Validation failed. Check the errors below.');
-                    } else if (error.response?.data?.message) {
-                        this.$toast.error(error.response.data.message);
-                    } else {
-                        const errorMsg = error.message || 'Failed to generate favicons';
-                        this.$toast.error(errorMsg);
-                    }
+                    this.$toast.error(error.response?.data?.message || 'Failed to generate favicons');
                 });
         }
     }
