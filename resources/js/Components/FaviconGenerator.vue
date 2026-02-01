@@ -43,11 +43,12 @@
                     @input="formData.icon = $event.target.value"
                     type="text"
                     class="input-text"
-                    placeholder="favicons/icon.png or just icon.png"
+                    placeholder="assets::path/to/file.png or container::path/to/file.png"
                 />
                 <p class="text-xs text-gray-600 mt-1">
-                    Enter the filename or path (without leading slash) | 
-                    <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a>
+                    Format: <code class="bg-gray-100 px-1">container::path/to/file.png</code> (e.g., <code class="bg-gray-100 px-1">assets::favicons/icon.png</code>)
+                    <br>
+                    <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a> to find the file
                 </p>
             </div>
 
@@ -114,16 +115,13 @@ export default {
         }
         
         console.log('Initial values received:', this.initialValues);
+        console.log('Meta data:', this.meta);
     },
     
     methods: {
         getIconPath(icon) {
             if (Array.isArray(icon)) {
                 return icon.length > 0 ? icon[0] : '';
-            }
-            // Remove leading slash if present
-            if (typeof icon === 'string' && icon.startsWith('/')) {
-                return icon.substring(1);
             }
             return icon || '';
         },
@@ -141,22 +139,23 @@ export default {
                 return;
             }
             
+            // Validate icon format
+            const iconValue = this.formData.icon.trim();
+            if (!iconValue.includes('::')) {
+                this.$toast.error('Icon must be in format: container::path/to/file.png (e.g., assets::favicons/icon.png)');
+                return;
+            }
+            
             this.saving = true;
             this.$progress.start();
-            
-            // Clean the icon path - remove leading slash
-            let iconPath = this.formData.icon.trim();
-            if (iconPath.startsWith('/')) {
-                iconPath = iconPath.substring(1);
-            }
             
             // Format payload to match what the blueprint expects
             const payload = {
                 api_key: this.formData.api_key,
-                icon: [iconPath], // Send as array since it's an assets field
+                icon: [iconValue], // Send as array with full container::path format
                 html_tags: this.formData.html_tags,
                 generated_at: this.formData.generated_at,
-                settings_introduction: this.initialValues.settings_introduction || '' // Include all original fields
+                settings_introduction: this.initialValues.settings_introduction || ''
             };
             
             console.log('Sending payload:', payload);
