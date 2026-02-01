@@ -98,11 +98,9 @@ export default {
                 generated_at: this.initialValues.generated_at !== undefined ? this.initialValues.generated_at : ''
             });
         }
-        console.log('Mounted with data (after Object.assign):', this.formData);
-    },
-    
-    methods: {
-        
+          },
+          
+          methods: {        
         save() {
             if (!this.formData.api_key?.trim()) {
                 this.$toast.error('Please enter an API key');
