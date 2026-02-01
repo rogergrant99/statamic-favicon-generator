@@ -127,7 +127,7 @@ export default {
             const payload = {
                 settings_introduction: this.formData.settings_introduction,
                 api_key: this.formData.api_key,
-                icon: this.formData.icon, // Send as string (URL)
+                icon: [this.formData.icon], // Send as string (URL)
                 html_tags: this.formData.html_tags,
                 generated_at: this.formData.generated_at
             };
