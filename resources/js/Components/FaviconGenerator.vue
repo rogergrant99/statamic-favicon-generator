@@ -112,6 +112,8 @@ export default {
             this.formData.html_tags = this.initialValues.html_tags || '';
             this.formData.generated_at = this.initialValues.generated_at || '';
         }
+        
+        console.log('Initial values received:', this.initialValues);
     },
     
     methods: {
@@ -143,16 +145,18 @@ export default {
             this.$progress.start();
             
             // Clean the icon path - remove leading slash
-            let iconPath = this.formData.icon;
+            let iconPath = this.formData.icon.trim();
             if (iconPath.startsWith('/')) {
                 iconPath = iconPath.substring(1);
             }
             
+            // Format payload to match what the blueprint expects
             const payload = {
                 api_key: this.formData.api_key,
-                icon: iconPath,
+                icon: [iconPath], // Send as array since it's an assets field
                 html_tags: this.formData.html_tags,
-                generated_at: this.formData.generated_at
+                generated_at: this.formData.generated_at,
+                settings_introduction: this.initialValues.settings_introduction || '' // Include all original fields
             };
             
             console.log('Sending payload:', payload);
@@ -161,6 +165,8 @@ export default {
                 .then((response) => {
                     this.saving = false;
                     this.$progress.complete();
+                    
+                    console.log('Success response:', response.data);
                     
                     if (response.data.status === 'success') {
                         this.$toast.success(response.data.msg || 'Favicons generated successfully');
@@ -181,14 +187,16 @@ export default {
                     this.$progress.complete();
                     
                     console.error('Full error:', error);
-                    console.error('Error response:', error.response);
+                    console.error('Error response data:', error.response?.data);
                     
                     // Show validation errors if they exist
                     if (error.response?.status === 422 && error.response?.data?.errors) {
                         this.validationErrors = error.response.data.errors;
                         this.$toast.error('Validation failed. Check the errors below.');
+                    } else if (error.response?.data?.message) {
+                        this.$toast.error(error.response.data.message);
                     } else {
-                        const errorMsg = error.response?.data?.message || error.message || 'Failed to generate favicons';
+                        const errorMsg = error.message || 'Failed to generate favicons';
                         this.$toast.error(errorMsg);
                     }
                 });
