@@ -95,6 +95,8 @@ export default {
             this.formData.generated_at = this.initialValues.generated_at || '';
         }
         
+        console.log('Mounted with data (after assignments):', this.formData);
+        
         console.log('Mounted with data:', this.formData);
     },
     
