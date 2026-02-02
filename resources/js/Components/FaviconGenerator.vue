@@ -65,28 +65,58 @@
                         </p>
                     </div>
 
-                    <!-- Icon URL Section -->
+                    <!-- Icon Section -->
                     <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                         <label class="font-semibold text-slate-900 block mb-2 flex items-center gap-2 text-sm">
                             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            Master Icon URL
+                            Master Icon
                         </label>
-                        <input
-                            :value="formData.icon"
-                            @input="formData.icon = $event.target.value"
-                            type="text"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-mono text-sm bg-white"
-                            placeholder="https://yoursite.com/assets/favicons/icon.png"
-                        />
+                        
+                        <div class="space-y-3">
+                            <!-- Preview Area -->
+                            <div v-if="iconPreview" class="flex items-center gap-3 bg-white border border-slate-300 rounded-lg p-3">
+                                <img :src="iconPreview" class="w-16 h-16 object-cover rounded border border-slate-200" />
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-slate-900 truncate">{{ iconFileName || 'Selected Image' }}</p>
+                                    <p class="text-xs text-slate-500">Ready to generate</p>
+                                </div>
+                                <button 
+                                    @click="clearIcon"
+                                    class="text-slate-400 hover:text-red-600 transition-colors"
+                                    type="button"
+                                >
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Upload Button -->
+                            <div>
+                                <label class="w-full bg-white border-2 border-dashed border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 px-4 py-8 rounded-lg transition-colors flex flex-col items-center gap-2 text-sm font-medium cursor-pointer">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        @change="handleFileSelect"
+                                        class="hidden"
+                                    />
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                    <span class="font-semibold">{{ iconPreview ? 'Change Image' : 'Upload Image' }}</span>
+                                    <span class="text-xs text-slate-500">Click to browse or drag and drop</span>
+                                </label>
+                            </div>
+                        </div>
+                        
                         <p class="text-xs text-slate-600 mt-2 flex items-start gap-2">
                             <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <span>
-                                Enter the full public URL to your master favicon image (must be at least 512x512px and publicly accessible).
-                                <a href="/cp/assets" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-medium ml-1">Browse assets</a> to copy your image URL.
+                                Upload your master favicon image (must be at least 512x512px, PNG recommended).
                             </span>
                         </p>
                     </div>
@@ -151,7 +181,9 @@ data() {
             html_tags: '',
             generated_at: ''
         },
-        saving: false
+        saving: false,
+        iconPreview: null,
+        iconFileName: null
     }
 },
 
@@ -215,6 +247,10 @@ mounted() {
         }
         if (this.initialValues.icon !== undefined) {
             this.formData.icon = this.initialValues.icon;
+            // If there's an existing icon (URL or path), show it as preview
+            if (this.initialValues.icon) {
+                this.iconPreview = this.initialValues.icon;
+            }
         }
         if (this.initialValues.html_tags !== undefined) {
             this.formData.html_tags = this.initialValues.html_tags;
@@ -226,14 +262,43 @@ mounted() {
 },
           
 methods: {
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            this.$toast.error('Please select an image file');
+            return;
+        }
+        
+        // Store file name
+        this.iconFileName = file.name;
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.iconPreview = e.target.result;
+            // Store the base64 data directly
+            this.formData.icon = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    },
+    
+    clearIcon() {
+        this.formData.icon = '';
+        this.iconPreview = null;
+        this.iconFileName = null;
+    },
+    
     save() {
         if (!this.formData.api_key?.trim()) {
             this.$toast.error('Please enter an API key');
             return;
         }
         
-        if (!this.formData.icon?.trim()) {
-            this.$toast.error('Please enter the icon URL');
+        if (!this.formData.icon) {
+            this.$toast.error('Please select an icon');
             return;
         }
         

@@ -50,30 +50,97 @@ final class FaviconController extends CpController
         return $this->generate($request);
     }
 
-public function generate(Request $request) {
-    $apiKey = $request->input('api_key');
-    $masterImage = $request->input('icon'); // Now it's just a URL string
-    
-    $apiUrl = 'https://realfavicongenerator.net/api/favicon';
-    $filesLocationPath = '/' . Favicons::getAssetsContainer()->handle() . '/';
+    public function generate(Request $request) {
+        $apiKey = $request->input('api_key');
+        $iconData = $request->input('icon'); // This will be base64 data or a URL
+        
+        // Check if it's already base64 data (starts with data:)
+        if (strpos($iconData, 'data:') === 0) {
+            // Extract just the base64 part and mime type
+            preg_match('/data:([^;]+);base64,(.+)/', $iconData, $matches);
+            if (count($matches) === 3) {
+                $mimeType = $matches[1];
+                $base64Data = $matches[2];
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'msg' => 'Invalid image data format.'
+                ], 200);
+            }
+        } else {
+            // It's a URL or file path, we need to convert it
+            if (strpos($iconData, 'http') === 0) {
+                // It's a URL, fetch and convert
+                try {
+                    $imageContent = file_get_contents($iconData);
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->buffer($imageContent);
+                    $base64Data = base64_encode($imageContent);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => 'error',
+                        'msg' => 'Failed to fetch icon from URL: ' . $e->getMessage()
+                    ], 200);
+                }
+            } else {
+                // Try to get asset from Statamic
+                $asset = Asset::find($iconData);
+                
+                if (!$asset) {
+                    return response()->json([
+                        'status' => 'error',
+                        'msg' => 'Selected icon asset not found.'
+                    ], 200);
+                }
+                
+                // Get the full path to the image file
+                $imagePath = $asset->resolvedPath();
+                
+                if (!file_exists($imagePath)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'msg' => 'Icon file does not exist on disk.'
+                    ], 200);
+                }
+                
+                // Read the image file and encode it as base64
+                $base64Data = base64_encode(file_get_contents($imagePath));
+                $mimeType = mime_content_type($imagePath);
+            }
+        }
+        
+        $apiUrl = 'https://realfavicongenerator.net/api/favicon';
+        $filesLocationPath = '/' . Favicons::getAssetsContainer()->handle() . '/';
 
-    $payload = config('statamic.favicons.payload');
-    $payload['favicon_generation']['api_key'] = $apiKey;
-    $payload['favicon_generation']['master_picture']['url'] = $masterImage;
-    $payload['favicon_generation']['files_location']['path'] = $filesLocationPath;
-    $payload['favicon_generation']['versioning']['param_value'] = Str::random(6);
-    
-    $response = Http::timeout(120)->post($apiUrl, $payload);
+        $payload = config('statamic.favicons.payload');
+        $payload['favicon_generation']['api_key'] = $apiKey;
+        
+        // Use inline_picture for the master picture - NO data: prefix
+        $payload['favicon_generation']['master_picture']['type'] = 'inline';
+        $payload['favicon_generation']['master_picture']['content'] = $base64Data;
+        
+        // Remove the url key if it exists
+        unset($payload['favicon_generation']['master_picture']['url']);
+        
+        $payload['favicon_generation']['files_location']['path'] = $filesLocationPath;
+        $payload['favicon_generation']['versioning']['param_value'] = Str::random(6);
+        
+        Log::debug('Favicon Generator: Sending API request', [
+            'payload_structure' => array_keys($payload['favicon_generation']),
+            'mime_type' => $mimeType,
+            'base64_length' => strlen($base64Data)
+        ]);
+        
+        $response = Http::timeout(120)->post($apiUrl, $payload);
 
-
-		if ($response->successful() && $response->json('favicon_generation_result.result.status') == 'success') {
+        if ($response->successful() && $response->json('favicon_generation_result.result.status') == 'success') {
             Log::debug('Favicon Generator: API call successful.', ['response' => $response->json()]);
 
-			// Handle generated zip file
-			$zipUrl = $response->json('favicon_generation_result.favicon.package_url');
+            // Handle generated zip file
+            $zipUrl = $response->json('favicon_generation_result.favicon.package_url');
             Log::debug('Favicon Generator: Zip URL', ['zipUrl' => $zipUrl]);
 
-			$zipFile = sys_get_temp_dir() . '/favicons.zip';
+            $zipFile = sys_get_temp_dir() . '/favicons.zip';
             Log::debug('Favicon Generator: Temporary zip file path', ['zipFile' => $zipFile]);
 
             try {
@@ -87,7 +154,7 @@ public function generate(Request $request) {
                 ], 200);
             }
 
-			$zip = new ZipArchive;
+            $zip = new ZipArchive;
             if ($zip->open($zipFile) === TRUE) {
                 $faviconsDirectory = public_path($filesLocationPath);
                 // Ensure the directory exists
@@ -97,8 +164,8 @@ public function generate(Request $request) {
                 Log::debug('Favicon Generator: Favicons extraction directory', ['directory' => $faviconsDirectory]);
 
                 try {
-				    $zip->extractTo($faviconsDirectory);
-				    $zip->close();
+                    $zip->extractTo($faviconsDirectory);
+                    $zip->close();
                     Log::debug('Favicon Generator: Favicons extracted successfully.');
                 } catch (\Exception $e) {
                     Log::error('Favicon Generator: Failed to extract zip file.', ['error' => $e->getMessage()]);
@@ -108,29 +175,28 @@ public function generate(Request $request) {
                     ], 200);
                 }
 
-				unlink($zipFile);
+                unlink($zipFile);
                 Log::debug('Favicon Generator: Temporary zip file deleted.');
 
-			// Write new blueprint values
-			$values = $request->all();
+                // Write new blueprint values
+                $values = $request->all();
 
-			$values['html_tags'] = $response->json('favicon_generation_result.favicon.html_code');
-			$values['generated_at'] = now()->format('Y-m-d H:i:s');
+                $values['html_tags'] = $response->json('favicon_generation_result.favicon.html_code');
+                $values['generated_at'] = now()->format('Y-m-d H:i:s');
 
-			$blueprint = Favicons::blueprint();
+                $blueprint = Favicons::blueprint();
 
-			$fields = $blueprint->fields()->addValues($values);
+                $fields = $blueprint->fields()->addValues($values);
 
-			$fields->validate();
+                $fields->validate();
 
-			File::put(config('statamic.favicons.path'), YAML::dump($fields->process()->values()->all()));
-            Log::debug('Favicon Generator: Blueprint values saved to', ['path' => config('statamic.favicons.path'), 'values' => YAML::dump($fields->process()->values()->all())]);
+                File::put(config('statamic.favicons.path'), YAML::dump($fields->process()->values()->all()));
+                Log::debug('Favicon Generator: Blueprint values saved to', ['path' => config('statamic.favicons.path'), 'values' => YAML::dump($fields->process()->values()->all())]);
 
-
-			return response()->json([
-				'status' => 'success',
-				'msg' => 'Saved and generated'
-			], 200);
+                return response()->json([
+                    'status' => 'success',
+                    'msg' => 'Saved and generated'
+                ], 200);
             } else {
                 Log::error('Favicon Generator: Failed to open zip file.', ['zipFile' => $zipFile]);
                 return response()->json([
@@ -138,8 +204,8 @@ public function generate(Request $request) {
                     'msg' => 'Failed to open generated favicon package.'
                 ], 200);
             }
-		} else {
-			$apiResponse = $response->json();
+        } else {
+            $apiResponse = $response->json();
             // Log the full response body for debugging, even if it's not valid JSON
             Log::error('RealFaviconGenerator API Error (raw body):', ['body' => $response->body()]);
 
@@ -158,6 +224,6 @@ public function generate(Request $request) {
                 'status' => 'error',
                 'msg' => $errorMessage
             ], 200);
-		}
-	}
+        }
+    }
 }
