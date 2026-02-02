@@ -95,19 +95,23 @@
                             
                             <!-- Upload Button -->
                             <div>
-                                <label class="w-full bg-white border-2 border-dashed border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 px-4 py-8 rounded-lg transition-colors flex flex-col items-center gap-2 text-sm font-medium cursor-pointer">
-                                    <input 
-                                        type="file" 
-                                        accept="image/*"
-                                        @change="handleFileSelect"
-                                        class="hidden"
-                                    />
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    @change="handleFileSelect"
+                                    id="fileInput"
+                                    class="hidden"
+                                />
+                                <button 
+                                    @click="triggerFileInput"
+                                    type="button"
+                                    class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 text-sm"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
-                                    <span class="font-semibold">{{ iconPreview ? 'Change Image' : 'Upload Image' }}</span>
-                                    <span class="text-xs text-slate-500">Click to browse or drag and drop</span>
-                                </label>
+                                    <span>{{ iconPreview ? 'Change Image' : 'Browse...' }}</span>
+                                </button>
                             </div>
                         </div>
                         
@@ -262,6 +266,10 @@ mounted() {
 },
           
 methods: {
+    triggerFileInput() {
+        document.getElementById('fileInput').click();
+    },
+    
     handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) return;
