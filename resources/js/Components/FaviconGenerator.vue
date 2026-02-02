@@ -20,49 +20,50 @@
 
         <div class="card p-6 space-y-6">
             <!-- API Key -->
-            <div>
-                <label class="font-semibold block mb-2">API Key</label>
-                <input
-                    v-model="formData.api_key"
-                    type="text"
-                    class="input-text"
-                    placeholder="Enter your RealFaviconGenerator API key"
-                />
-                <p class="text-xs text-gray-600 mt-1">
-                    Get your API key from <a href="https://realfavicongenerator.net/api" target="_blank" class="text-blue-600 hover:underline">RealFaviconGenerator.net</a>
-                </p>
-            </div>
+<!-- API Key -->
+<div>
+    <label class="font-semibold block mb-2">API Key</label>
+    <input
+        :value="formData.api_key"
+        @input="formData.api_key = $event.target.value"
+        type="text"
+        style="width: 100%; padding: 8px; border: 1px solid #ccc;"
+        placeholder="Enter your RealFaviconGenerator API key"
+    />
+    <p class="text-xs text-gray-600 mt-1">
+        Get your API key from <a href="https://realfavicongenerator.net/api" target="_blank" class="text-blue-600 hover:underline">RealFaviconGenerator.net</a>
+    </p>
+</div>
 
             <!-- Icon URL -->
-            <div>
-                <label class="font-semibold block mb-2">Master Icon URL</label>
-                <input
-                    v-model="formData.icon"
-                    type="url"
-                    class="input-text"
-                    placeholder="https://yoursite.com/assets/favicons/icon.png"
-                />
-                <p class="text-xs text-gray-600 mt-1">
-                    Enter the full public URL to your master favicon image (must be at least 512x512px and publicly accessible).
-                    <br>
-                    <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a>, right-click on your image, and copy the URL.
-                </p>
-            </div>
-
-            <!-- Generated HTML Tags (Read-only) -->
-            <div>
-                <label class="font-semibold block mb-2">Generated HTML Tags</label>
-                <div class="bg-gray-900 text-gray-100 p-4 rounded font-mono text-xs overflow-x-auto max-h-64">
-                    <pre v-if="formData.html_tags">{{ formData.html_tags }}</pre>
-                    <div v-else class="text-gray-500">No HTML tags generated yet.</div>
-                </div>
-            </div>
-        </div>
+<div>
+    <label class="font-semibold block mb-2">Master Icon URL</label>
+    <input
+        :value="formData.icon"
+        @input="formData.icon = $event.target.value"
+        type="text"
+        style="width: 100%; padding: 8px; border: 1px solid #ccc;"
+        placeholder="https://yoursite.com/assets/favicons/icon.png"
+    />
+    <p class="text-xs text-gray-600 mt-1">
+        Enter the full public URL to your master favicon image (must be at least 512x512px and publicly accessible).
+        <br>
+        <a href="/cp/assets" target="_blank" class="text-blue-600 hover:underline">Browse assets</a>, right-click on your image, and copy the URL.
+    </p>
+</div>
+<!-- Generated HTML Tags (Read-only) -->
+<div>
+    <label class="font-semibold block mb-2">Generated HTML Tags</label>
+    <div class="bg-gray-900 text-gray-100 p-4 rounded font-mono text-xs overflow-x-auto max-h-64" style="color: #f3f4f6; font-size: 14px;">
+        <pre v-if="formData.html_tags" style="color: #f3f4f6; margin: 0;">{{ formData.html_tags }}</pre>
+        <div v-else class="text-gray-500">No HTML tags generated yet.</div>
     </div>
+</div>
+    </div>
+</div>
 </template>
 
 <script>
-import { reactive } from 'vue';
 
 export default {
     props: {
@@ -73,32 +74,38 @@ export default {
         generate: String
     },
     
-    data() {
-        return {
-            formData: reactive({
-                settings_introduction: true,
-                api_key: '',
-                icon: '',
-                html_tags: '',
-                generated_at: ''
-            }),
-            saving: false
-        }
-    },
+data() {
+    return {
+        formData: {
+            settings_introduction: true,
+            api_key: '',  // <-- Change back to empty string
+            icon: '',     // <-- Change back to empty string
+            html_tags: '',  // <-- Change back to empty string
+            generated_at: ''  // <-- Change back to empty string
+        },
+        saving: false
+    }
+},
     
-    mounted() {
-        if (this.initialValues) {
-            // Assign properties directly from initialValues
-            // Use Object.assign to merge properties into the reactive formData object
-            Object.assign(this.formData, {
-                settings_introduction: this.initialValues.settings_introduction !== undefined ? this.initialValues.settings_introduction : true,
-                api_key: this.initialValues.api_key !== undefined ? this.initialValues.api_key : '',
-                icon: this.initialValues.icon !== undefined ? this.initialValues.icon : '',
-                html_tags: this.initialValues.html_tags !== undefined ? this.initialValues.html_tags : '',
-                generated_at: this.initialValues.generated_at !== undefined ? this.initialValues.generated_at : ''
-            });
+mounted() {
+    if (this.initialValues) {
+        if (this.initialValues.settings_introduction !== undefined) {
+            this.formData.settings_introduction = this.initialValues.settings_introduction;
         }
-          },
+        if (this.initialValues.api_key !== undefined) {
+            this.formData.api_key = this.initialValues.api_key;
+        }
+        if (this.initialValues.icon !== undefined) {
+            this.formData.icon = this.initialValues.icon;
+        }
+        if (this.initialValues.html_tags !== undefined) {
+            this.formData.html_tags = this.initialValues.html_tags;
+        }
+        if (this.initialValues.generated_at !== undefined) {
+            this.formData.generated_at = this.initialValues.generated_at;
+        }
+    }
+},
           
           methods: {        save() {
             if (!this.formData.api_key?.trim()) {
