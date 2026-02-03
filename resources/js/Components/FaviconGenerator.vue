@@ -124,6 +124,51 @@
                             </span>
                         </p>
                     </div>
+                <!-- App Name Section -->
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                    <label class="font-semibold text-slate-900 block mb-2 flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                        App Name
+                    </label>
+                    <input
+                        v-model="formData.app_name"
+                        type="text"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm bg-white"
+                        placeholder="My Application"
+                        maxlength="45"
+                    />
+                    <p class="text-xs text-slate-600 mt-2 flex items-start gap-2">
+                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Full application name (up to 45 characters)</span>
+                    </p>
+                </div>
+
+                <!-- App Short Name Section -->
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                    <label class="font-semibold text-slate-900 block mb-2 flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                        App Short Name
+                    </label>
+                    <input
+                        v-model="formData.app_short_name"
+                        type="text"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm bg-white"
+                        placeholder="MyApp"
+                        maxlength="12"
+                    />
+                    <p class="text-xs text-slate-600 mt-2 flex items-start gap-2">
+                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Short name (up to 12 characters)</span>
+                    </p>
+                </div>
 
                     <!-- Generated HTML Tags Section -->
                     <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
@@ -173,25 +218,26 @@ export default {
         blueprint: Object,
         meta: Object,
         initialValues: Object,
-        generate: String
+        generate: String,
+        defaultAppName: String  
     },
     
-data() {
-    return {
-        formData: {
-            settings_introduction: true,
-            api_key: '',
-            icon: '',
-            html_tags: '',
-            generated_at: '',
-            app_name: {{ config:app:name }}, 
-            app_short_name: {{ config:app:name }}
-        },
-        saving: false,
-        iconPreview: null,
-        iconFileName: null
-    }
-},
+    data() {
+        return {
+            formData: {
+                settings_introduction: true,
+                api_key: '',
+                icon: '',
+                html_tags: '',
+                generated_at: '',
+                app_name: this.defaultAppName || '',  
+                app_short_name: this.defaultAppName || ''  
+            },
+            saving: false,
+            iconPreview: null,
+            iconFileName: null
+        }
+    },
 
 computed: {
     formattedGeneratedAt() {
@@ -320,18 +366,17 @@ methods: {
             api_key: this.formData.api_key,
             icon: this.formData.icon,
             html_tags: this.formData.html_tags,
-            generated_at: this.formData.generated_at
-        };
+            generated_at: this.formData.generated_at,
+            app_name: this.formData.app_name,
+            app_short_name: this.formData.app_short_name
+            };
         
-        console.log('Sending:', payload);
         
         this.$axios.post('/cp/favicon-generator/update', payload)
             .then((response) => {
                 this.saving = false;
                 this.$progress.complete();
-                
-                console.log('Response:', response.data);
-                
+                                
                 if (response.data.status === 'success') {
                     this.$toast.success(response.data.msg || 'Favicons generated successfully');
                     

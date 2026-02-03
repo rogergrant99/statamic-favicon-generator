@@ -125,11 +125,12 @@ final class FaviconController extends CpController
         $payload['favicon_generation']['files_location']['path'] = $filesLocationPath;
         $payload['favicon_generation']['versioning']['param_value'] = Str::random(6);
         
-        Log::debug('Favicon Generator: Sending API request', [
-            'payload_structure' => array_keys($payload['favicon_generation']),
-            'mime_type' => $mimeType,
-            'base64_length' => strlen($base64Data)
-        ]);
+        if ($request->has('app_name') && !empty($request->input('app_name'))) {
+            $payload['favicon_generation']['favicon_design']['android_chrome']['manifest']['name'] = $request->input('app_name');
+        }
+        if ($request->has('app_short_name') && !empty($request->input('app_short_name'))) {
+            $payload['favicon_generation']['favicon_design']['android_chrome']['manifest']['short_name'] = $request->input('app_short_name');
+        }
         
         $response = Http::timeout(120)->post($apiUrl, $payload);
 
@@ -163,19 +164,38 @@ final class FaviconController extends CpController
                 }
                 Log::debug('Favicon Generator: Favicons extraction directory', ['directory' => $faviconsDirectory]);
 
-                try {
-                    $zip->extractTo($faviconsDirectory);
-                    $zip->close();
-                    Log::debug('Favicon Generator: Favicons extracted successfully.');
-                } catch (\Exception $e) {
-                    Log::error('Favicon Generator: Failed to extract zip file.', ['error' => $e->getMessage()]);
-                    return response()->json([
-                        'status' => 'error',
-                        'msg' => 'Failed to extract generated favicon package: ' . $e->getMessage()
-                    ], 200);
-                }
+            try {
+                $zip->extractTo($faviconsDirectory);
+                $zip->close();
+                Log::debug('Favicon Generator: Favicons extracted successfully.');
 
-                unlink($zipFile);
+                $manifestPath = $faviconsDirectory . 'site.webmanifest';
+                if (file_exists($manifestPath)) {
+                    $manifest = json_decode(file_get_contents($manifestPath), true);
+                    
+                    if ($request->has('app_name') && !empty($request->input('app_name'))) {
+                        $manifest['name'] = $request->input('app_name');
+                    }
+                    if ($request->has('app_short_name') && !empty($request->input('app_short_name'))) {
+                        $manifest['short_name'] = $request->input('app_short_name');
+                    }
+                    
+                    // Write the updated manifest back
+                    file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                    Log::debug('Favicon Generator: Manifest updated with app names');
+                }
+                
+            } catch (\Exception $e) {
+                Log::error('Favicon Generator: Failed to extract zip file.', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'status' => 'error',
+                    'msg' => 'Failed to extract generated favicon package: ' . $e->getMessage()
+                ], 200);
+            }
+
+            unlink($zipFile);
+            Log::debug('Favicon Generator: Temporary zip file deleted.');
+
                 Log::debug('Favicon Generator: Temporary zip file deleted.');
 
                 // Write new blueprint values

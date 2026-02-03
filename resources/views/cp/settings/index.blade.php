@@ -8,6 +8,7 @@
     :meta='@json($meta)'
     :initial-values='@json($values)'
     generate="@lang('statamic-favicon-generator::cp.general.generate')"
+    :default-app-name="'{{ config('app.name') }}'"
 ></favicon-generator>
 
 @endsection
