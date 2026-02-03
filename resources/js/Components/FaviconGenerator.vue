@@ -183,7 +183,9 @@ data() {
             api_key: '',
             icon: '',
             html_tags: '',
-            generated_at: ''
+            generated_at: '',
+            app_name: {{ config:app:name }}, 
+            app_short_name: {{ config:app:name }}
         },
         saving: false,
         iconPreview: null,
