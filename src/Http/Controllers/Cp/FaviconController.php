@@ -210,6 +210,10 @@ final class FaviconController extends CpController
                 $values = $request->all();
 
                 $values['html_tags'] = $response->json('favicon_generation_result.favicon.html_code');
+                $appShortName = config('statamic.favicons.app_short_name');
+                if (! empty($appShortName)) {
+                    $values['html_tags'] .= '<meta name="apple-mobile-web-app-title" content="' . $appShortName . '" />';
+                }
                 $values['generated_at'] = now()->format('Y-m-d H:i:s');
 
                 $blueprint = Favicons::blueprint();
