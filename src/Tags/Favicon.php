@@ -15,8 +15,8 @@ class Favicon extends Tags
      */
     public function index()
     {
-        return '<!-- rogergrant99 Favicon Generator Tags -->'
+        return '<!-- Favicon Generator Tags -->'
             . Favicons::augmentedValues()['html_tags']
-            . '<!-- /rogergrant99 Favicon Generator Tags -->';
+            . '<!-- /Favicon Generator Tags -->';
     }
 }
