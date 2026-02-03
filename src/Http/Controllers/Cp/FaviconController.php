@@ -125,11 +125,15 @@ final class FaviconController extends CpController
         $payload['favicon_generation']['files_location']['path'] = $filesLocationPath;
         $payload['favicon_generation']['versioning']['param_value'] = Str::random(6);
         
-        if ($request->has('app_name') && !empty($request->input('app_name'))) {
-            $payload['favicon_generation']['favicon_design']['android_chrome']['manifest']['name'] = $request->input('app_name');
+        
+        $appName = config('statamic.favicons.app_name');
+        $appShortName = config('statamic.favicons.app_short_name');
+
+        if (!empty($appName)) {
+            $payload['favicon_generation']['favicon_design']['android_chrome']['manifest']['name'] = $appName;
         }
-        if ($request->has('app_short_name') && !empty($request->input('app_short_name'))) {
-            $payload['favicon_generation']['favicon_design']['android_chrome']['manifest']['short_name'] = $request->input('app_short_name');
+        if (!empty($appShortName)) {
+            $payload['favicon_generation']['favicon_design']['android_chrome']['manifest']['short_name'] = $appShortName;
         }
         
         $response = Http::timeout(120)->post($apiUrl, $payload);
@@ -173,11 +177,15 @@ final class FaviconController extends CpController
                 if (file_exists($manifestPath)) {
                     $manifest = json_decode(file_get_contents($manifestPath), true);
                     
-                    if ($request->has('app_name') && !empty($request->input('app_name'))) {
-                        $manifest['name'] = $request->input('app_name');
+                    
+                    $appName = config('statamic.favicons.app_name');
+                    $appShortName = config('statamic.favicons.app_short_name');
+
+                    if (!empty($appName)) {
+                        $manifest['name'] = $appName;
                     }
-                    if ($request->has('app_short_name') && !empty($request->input('app_short_name'))) {
-                        $manifest['short_name'] = $request->input('app_short_name');
+                    if (!empty($appShortName)) {
+                        $manifest['short_name'] = $appShortName;
                     }
                     
                     // Write the updated manifest back
